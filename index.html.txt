@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fiskus global – Moot Court Crossword</title>
+
+<style>
+body {
+  font-family: -apple-system, sans-serif;
+  background: #f8fafc;
+  margin: 0;
+  text-align: center;
+  color: #0f172a;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
+  padding: 15px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* TOPBAR */
+.topbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  font-weight: bold;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(17, 1fr);
+  max-width: 95vw;
+  margin: auto;
+  gap: 2px;
+}
+
+.cell {
+  aspect-ratio: 1;
+  font-size: 18px;
+  border: 1px solid #cbd5f5;
+  text-align: center;
+  background: white;
+}
+
+.cell:focus {
+  background: #bfdbfe;
+  outline: none;
+}
+
+.black {
+  background: #1e3a8a;
+}
+
+.correct { background: #bbf7d0 !important; }
+.wrong { background: #fecaca !important; }
+
+/* BUTTONS */
+button {
+  padding: 12px;
+  margin: 8px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  background: #2563eb;
+  color: white;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.result {
+  margin-top: 10px;
+  font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>📰 Fiskus global</h1>
+  <p>Moot Court Challenge – EU Tax Law</p>
+</div>
+
+<div class="topbar">
+  <div>⏱️ <span id="time">0</span>s</div>
+  <div>🏆 Best: <span id="best">--</span></div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<button onclick="check()">✔ Prüfen</button>
+<button onclick="reveal()">👀 Lösung</button>
+
+<div class="result" id="result"></div>
+
+<script>
+const layout = [
+"XXXNIEDERLASSUNGSXXX",
+"XXXAXXXXXXXXXXXXXXXX",
+"SWITCHOVERKLAUSELXX",
+"XXXGXXXXXXXXXXXXXXX",
+"ASTGXXXXXXXXXXXXXXXX",
+"XXBETRIEBSSTAETTEXX",
+"XXXXXXXXXXXXXXXXXXX",
+"FREISTELLUNGSMETHOD",
+"XXXXXXXXXXXXXXXXXXX",
+"ANRECHNUNGSMETHODEX",
+"XXXXXXXXXXXXXXXXXXX",
+"MOTIVTESTXXXXXXXXXX",
+"XXZWISCHENEINKUENFT",
+"XXXXXXXXXXXXXXXXXXX",
+"CADBURYSCHWEPPESXXX",
+"XXEUGHXXXXXXXXXXXXX",
+"XXVORABENTSCHEIDUNG"
+];
+
+let inputs = [];
+let time = 0;
+let timer = setInterval(() => {
+  time++;
+  document.getElementById("time").innerText = time;
+}, 1000);
+
+// Bestzeit speichern
+let best = localStorage.getItem("bestTime");
+if (best) document.getElementById("best").innerText = best + "s";
+
+const grid = document.getElementById("grid");
+
+layout.forEach(row => {
+  row.split("").forEach(c => {
+    if (c === "X") {
+      let div = document.createElement("div");
+      div.className = "cell black";
+      grid.appendChild(div);
+    } else {
+      let input = document.createElement("input");
+      input.className = "cell";
+      input.maxLength = 1;
+      input.dataset.solution = c;
+
+      input.addEventListener("input", () => move(input));
+
+      inputs.push(input);
+      grid.appendChild(input);
+    }
+  });
+});
+
+function move(current) {
+  let index = inputs.indexOf(current);
+  if (inputs[index + 1]) inputs[index + 1].focus();
+}
+
+function check() {
+  let correct = 0;
+
+  inputs.forEach(i => {
+    if (i.value.toUpperCase() === i.dataset.solution) {
+      i.classList.add("correct");
+      i.classList.remove("wrong");
+      correct++;
+    } else {
+      i.classList.add("wrong");
+      i.classList.remove("correct");
+    }
+  });
+
+  let percent = Math.round((correct / inputs.length) * 100);
+
+  document.getElementById("result").innerHTML =
+    "📊 Ergebnis: " + percent + "% richtig";
+
+  if (percent === 100) {
+    clearInterval(timer);
+
+    document.getElementById("result").innerHTML +=
+      "<br>🎉 Perfekt gelöst in " + time + " Sekunden!";
+
+    if (!best || time < best) {
+      localStorage.setItem("bestTime", time);
+      document.getElementById("best").innerText = time + "s";
+    }
+  }
+}
+
+function reveal() {
+  inputs.forEach(i => i.value = i.dataset.solution);
+}
+</script>
+
+</body>
+</html>
